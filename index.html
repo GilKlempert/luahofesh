@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -35,6 +35,555 @@
   body{
     font-family:'Heebo','Assistant',sans-serif;
     background:var(--bg);
+    color:var(--ink);
+    font-size:16px;line-height:1.6;word-spacing:.04em;
+    background-image:radial-gradient(circle at 12% 8%, rgba(255,183,3,.10), transparent 40%),
+                     radial-gradient(circle at 88% 4%, rgba(11,114,133,.08), transparent 38%);
+    min-height:100vh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  h1,h2,h3{font-family:'Frank Ruhl Libre',serif;margin:0;}
+
+  header{
+    text-align:center;padding:22px 16px 10px;
+  }
+  header .sun{font-size:38px;line-height:1;}
+  header h1{font-size:28px;font-weight:900;color:var(--teal);margin-top:4px;letter-spacing:-.5px;}
+  header p{margin:4px 0 0;color:var(--muted);font-size:14px;}
+
+  .wrap{max-width:760px;margin:0 auto;padding:0 14px 60px;}
+
+  /* ---- filter chips ---- */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 6px;}
+  .chip{
+    border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+    border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600;
+    font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    transition:transform .08s, box-shadow .15s, background .15s;
+  }
+  .chip:active{transform:scale(.95);}
+  .chip .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;}
+  .chip.active{color:#fff;border-color:transparent;box-shadow:var(--shadow);}
+  .chip.all.active{background:var(--teal);}
+
+  /* ---- view toggle ---- */
+  .viewtoggle{display:flex;justify-content:center;gap:0;margin:14px auto 18px;background:var(--card);
+    border:1.5px solid var(--line);border-radius:999px;padding:4px;width:fit-content;box-shadow:var(--shadow);}
+  .viewtoggle button{border:none;background:transparent;font-family:inherit;font-weight:700;font-size:14px;
+    color:var(--muted);padding:8px 20px;border-radius:999px;cursor:pointer;transition:.15s;}
+  .viewtoggle button.active{background:var(--teal);color:#fff;}
+
+  /* ---- status ---- */
+  .status{text-align:center;color:var(--muted);padding:30px 10px;font-size:15px;}
+  .status.error{color:#c0392b;}
+  .spinner{width:28px;height:28px;border:3px solid var(--teal-soft);border-top-color:var(--teal);
+    border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---- LIST view ---- */
+  .daygroup{margin-bottom:22px;}
+  .dayhead{display:flex;align-items:baseline;gap:8px;margin:0 4px 10px;padding-bottom:6px;
+    border-bottom:2px solid var(--line);}
+  .dayhead .dnum{font-family:'Frank Ruhl Libre',serif;font-size:22px;font-weight:900;color:var(--teal);}
+  .dayhead .dname{font-size:14px;color:var(--muted);font-weight:600;}
+  .dayhead.today .dnum{color:var(--sun);}
+  .dayhead.today::after{content:'היום';margin-inline-start:auto;background:var(--sun);color:#3a2b00;
+    font-size:12px;font-weight:800;padding:2px 10px;border-radius:999px;}
+
+  .event{background:var(--card);border-radius:16px;padding:13px 15px;margin-bottom:10px;
+    box-shadow:var(--shadow);border-inline-start:5px solid var(--teal);position:relative;}
+  .event .etime{font-weight:800;font-size:14px;color:var(--teal);font-variant-numeric:tabular-nums;}
+  .event .etime .allday{background:var(--teal-soft);color:var(--teal);font-size:12px;
+    padding:1px 8px;border-radius:6px;font-weight:700;}
+  .event .etitle{font-size:17px;font-weight:700;margin:3px 0 2px;}
+  .event .emeta{font-size:14px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:3px;}
+  .event .emeta span{display:inline-flex;align-items:center;gap:4px;}
+  .event .enotes{font-size:14px;color:#4a5d64;margin-top:6px;white-space:pre-wrap;
+    background:#faf6ee;border-radius:8px;padding:7px 10px;}
+  .tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .tag{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:999px;color:#fff;line-height:1.4;}
+
+  /* ---- MONTH view ---- */
+  .monthnav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;}
+  .monthnav button{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);
+    background:var(--card);font-size:18px;cursor:pointer;color:var(--teal);box-shadow:var(--shadow);}
+  .monthnav .mlabel{font-family:'Frank Ruhl Libre',serif;font-weight:900;font-size:19px;min-width:150px;text-align:center;}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .wd{text-align:center;font-size:12px;font-weight:700;color:var(--muted);padding:4px 0;}
+  .cell{background:var(--card);border-radius:10px;min-height:62px;padding:4px;font-size:11px;
+    border:1px solid var(--line);overflow:hidden;cursor:pointer;transition:.12s;}
+  .cell.empty{background:transparent;border:none;cursor:default;}
+  .cell.today{outline:2px solid var(--sun);}
+  .cell .cdate{font-weight:800;font-size:13px;color:var(--ink);}
+  .cell.today .cdate{color:var(--sun);}
+  .cell .ev{display:flex;align-items:center;gap:3px;margin-top:2px;font-size:10.5px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cell .ev .pdot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;}
+  .cell .more{color:var(--muted);font-size:10px;margin-top:1px;}
+
+  /* ---- day detail modal ---- */
+  .modal{position:fixed;inset:0;background:rgba(20,40,46,.45);display:none;align-items:flex-end;
+    justify-content:center;z-index:50;}
+  .modal.open{display:flex;}
+  .sheet{background:var(--bg);width:100%;max-width:760px;border-radius:22px 22px 0 0;
+    padding:18px 16px calc(20px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto;
+    box-shadow:var(--shadow-lg);animation:slideup .25s ease;}
+  @keyframes slideup{from{transform:translateY(40px);opacity:.6;}to{transform:none;opacity:1;}}
+  .sheet .shead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .sheet .shead h3{font-size:20px;color:var(--teal);}
+  .sheet .close{border:none;background:var(--line);width:34px;height:34px;border-radius:50%;
+    font-size:18px;cursor:pointer;color:var(--ink);}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:20px 10px 40px;}
+  .refresh{background:none;border:none;color:var(--teal);font-family:inherit;font-weight:600;
+    font-size:13px;cursor:pointer;text-decoration:underline;}
+  .ltr{direction:ltr;unicode-bidi:isolate;}
+</style>
+</head>
+<body>
+<header>
+  <div class="sun">☀️</div>
+  <h1>לוחופש משפחת קלמפרט</h1>
+  <p>לוח האירועים של החופש הגדול</p>
+</header>
+
+<div class="wrap">
+  <div class="viewtoggle">
+    <button id="btnMonth" class="active" onclick="setView('month')">לוח חודשי</button>
+    <button id="btnList" onclick="setView('list')">רשימה</button>
+  </div>
+
+  <div class="filters" id="filters"></div>
+
+  <div id="content">
+    <div class="status"><div class="spinner"></div>טוען אירועים מהיומן…</div>
+  </div>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="sheet">
+    <div class="shead"><h3 id="modalTitle"></h3><button class="close" onclick="closeModal()">✕</button></div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<footer>
+  לוחופש · מתעדכן אוטומטית מהיומן המשפחתי<br>
+  <button class="refresh" onclick="loadEvents(true)">רענן עכשיו</button>
+</footer>
+
+<script>
+/* ============================================================
+   הגדרות — הדבק כאן את כתובת ה-iCal הפומבית של היומן
+   ============================================================ */
+/* ============================================================
+   מקור האירועים:
+   האתר קורא קובץ calendar.ics מקומי שמתעדכן אוטומטית כל שעה
+   ע"י GitHub Action (ראה .github/workflows/sync-calendar.yml).
+   זה אמין לחלוטין — אין תלות בשירות חיצוני ואין בעיית CORS.
+   ============================================================ */
+const LOCAL_ICS = "calendar.ics";
+
+/* גיבוי: אם הקובץ המקומי לא נמצא (למשל בבדיקה מקומית לפני ש-Action רץ),
+   ננסה למשוך ישירות מגוגל דרך פרוקסי. */
+const ICAL_URL = "https://calendar.google.com/calendar/ical/family04930625314444082438%40group.calendar.google.com/public/basic.ics";
+const PROXY = "https://api.allorigins.win/raw?url=";
+
+/* ----- בני המשפחה + תגיות-על + צבעי קיץ ----- */
+const PEOPLE = {
+  "אבא":   "#0b7285",  // טורקיז ים
+  "אמא":   "#e8590c",  // כתום שקיעה
+  "יפעה":  "#d6336c",  // ורוד בוגנוויליה
+  "לבונה": "#7048e8",  // סגול לילך
+  "עיינה": "#2f9e44",  // ירוק דקל
+  "נהורה": "#f08c00",  // צהוב חמנייה
+};
+const GROUPS = {
+  "כולם":   ["אבא","אמא","יפעה","לבונה","עיינה","נהורה"],
+  "משפחה":  ["אבא","אמא","יפעה","לבונה","עיינה","נהורה"],
+  "סיירת":  ["לבונה","יפעה"],
+  "קייטנה": ["עיינה","נהורה"],
+};
+const GROUP_COLOR = {"סיירת":"#7048e8","קייטנה":"#2f9e44","כולם":"#0b7285","משפחה":"#0b7285"};
+const GENERAL = "כללי";
+
+/* ============================================================ */
+let allEvents = [];
+let activeFilter = "ALL";
+let view = "month";
+let monthCursor = new Date();
+
+const HE_DAYS  = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+const HE_DAYS_S= ["א'","ב'","ג'","ד'","ה'","ו'","ש'"];
+const HE_MONTHS= ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+
+/* ---------- iCal parsing ---------- */
+function unfold(txt){ return txt.replace(/\r\n[ \t]/g,"").replace(/\n[ \t]/g,""); }
+function unescape(v){ return (v||"").replace(/\\n/gi,"\n").replace(/\\,/g,",").replace(/\\;/g,";").replace(/\\\\/g,"\\"); }
+
+function parseDate(val, params){
+  // all-day: VALUE=DATE  -> YYYYMMDD
+  if(/VALUE=DATE/.test(params) || /^\d{8}$/.test(val)){
+    const y=+val.slice(0,4), m=+val.slice(4,6)-1, d=+val.slice(6,8);
+    return {date:new Date(y,m,d), allDay:true};
+  }
+  // UTC  YYYYMMDDTHHMMSSZ
+  let m = val.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
+  if(m){ return {date:new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6])), allDay:false}; }
+  // local / TZID  YYYYMMDDTHHMMSS  (treated as local wall-clock — correct for Israel feed + Israel users)
+  m = val.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/);
+  if(m){ return {date:new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]), allDay:false}; }
+  const d=new Date(val); return {date:isNaN(d)?null:d, allDay:false};
+}
+
+/* פריסת RRULE למופעים בפועל. תומך ב-FREQ=DAILY/WEEKLY, INTERVAL, BYDAY, UNTIL, COUNT. */
+const DOW = {SU:0,MO:1,TU:2,WE:3,TH:4,FR:5,SA:6};
+function expandRRULE(ev, rrule, exdates){
+  const parts={};
+  rrule.split(";").forEach(p=>{ const [k,v]=p.split("="); if(k) parts[k.toUpperCase()]=v; });
+  const freq=parts.FREQ;
+  if(freq!=="DAILY" && freq!=="WEEKLY") return [ev]; // לא נתמך — לפחות מופע אחד
+  const interval=Math.max(1, parseInt(parts.INTERVAL||"1",10));
+  const count=parts.COUNT?parseInt(parts.COUNT,10):null;
+  let until=null;
+  if(parts.UNTIL){ const p=parseDate(parts.UNTIL, parts.UNTIL.endsWith("Z")?"":"VALUE=DATE"); if(p) until=p.date; }
+  const byday = parts.BYDAY ? parts.BYDAY.split(",").map(s=>DOW[s.slice(-2)]).filter(n=>n!==undefined) : null;
+
+  const durMs = ev.end ? (ev.end - ev.start) : 0;
+  const startH=ev.start.getHours(), startM=ev.start.getMinutes();
+  const exSet = new Set((exdates||[]).map(d=>ymd(d)));
+
+  const occ=[];
+  // חלון בטיחות: עד שנתיים קדימה, או UNTIL/COUNT
+  const hardStop = until ? new Date(until.getTime()+86400000) : new Date(ev.start.getFullYear()+2,ev.start.getMonth(),ev.start.getDate());
+  let cur=new Date(ev.start);
+  let made=0, guard=0;
+  if(freq==="WEEKLY" && byday && byday.length){
+    // התחל מתחילת שבוע ההתחלה, ועבור שבוע-שבוע לפי INTERVAL
+    let weekStart=new Date(ev.start); weekStart.setDate(weekStart.getDate()-weekStart.getDay()); // יום ראשון
+    while(weekStart<=hardStop && guard++<2000){
+      for(const dow of byday.slice().sort((a,b)=>a-b)){
+        const occDate=new Date(weekStart); occDate.setDate(weekStart.getDate()+dow);
+        occDate.setHours(startH,startM,0,0);
+        if(occDate<ev.start) continue;
+        if(until && occDate>until) { weekStart=hardStop; break; }
+        if(!exSet.has(ymd(occDate))){
+          occ.push(mkOcc(ev,occDate,durMs)); made++;
+          if(count && made>=count){ weekStart=hardStop; break; }
+        }
+      }
+      weekStart.setDate(weekStart.getDate()+7*interval);
+    }
+  } else {
+    // DAILY, או WEEKLY בלי BYDAY
+    const stepDays = freq==="DAILY" ? interval : 7*interval;
+    while(cur<=hardStop && guard++<2000){
+      if(until && cur>until) break;
+      if(!exSet.has(ymd(cur))){
+        const occDate=new Date(cur); occDate.setHours(startH,startM,0,0);
+        occ.push(mkOcc(ev,occDate,durMs)); made++;
+        if(count && made>=count) break;
+      }
+      cur.setDate(cur.getDate()+stepDays);
+    }
+  }
+  return occ.length?occ:[ev];
+}
+function mkOcc(ev,startDate,durMs){
+  const o={...ev, start:new Date(startDate)};
+  o.end = durMs ? new Date(startDate.getTime()+durMs) : null;
+  return o;
+}
+
+function parseICS(text){
+  text = unfold(text);
+  // הסר בלוקי VTIMEZONE כדי שלא ייחשבו בטעות כאירועים
+  text = text.replace(/BEGIN:VTIMEZONE[\s\S]*?END:VTIMEZONE/g,"");
+  const out=[];
+  const blocks = text.split("BEGIN:VEVENT").slice(1);
+  for(const b of blocks){
+    const body = b.split("END:VEVENT")[0];
+    const lines = body.split(/\n/);
+    let ev={summary:"",location:"",description:"",start:null,end:null,allDay:false};
+    let rrule=null; const exdates=[];
+    for(let line of lines){
+      line=line.trim(); if(!line) continue;
+      const ci=line.indexOf(":"); if(ci<0) continue;
+      const key=line.slice(0,ci), val=line.slice(ci+1);
+      const name=key.split(";")[0].toUpperCase();
+      if(name==="SUMMARY") ev.summary=unescape(val);
+      else if(name==="LOCATION") ev.location=unescape(val);
+      else if(name==="DESCRIPTION") ev.description=unescape(val);
+      else if(name==="DTSTART"){ const p=parseDate(val,key); if(p){ev.start=p.date;ev.allDay=p.allDay;} }
+      else if(name==="DTEND"){ const p=parseDate(val,key); if(p) ev.end=p.date; }
+      else if(name==="RRULE"){ rrule=val; }
+      else if(name==="EXDATE"){ val.split(",").forEach(v=>{ const p=parseDate(v.trim(),key); if(p) exdates.push(p.date); }); }
+    }
+    if(!ev.start) continue;
+    if(rrule){
+      for(const occ of expandRRULE(ev,rrule,exdates)) out.push(buildEvent(occ));
+    } else {
+      out.push(buildEvent(ev));
+    }
+  }
+  return out.sort((a,b)=>a.start-b.start);
+}
+
+/* ---------- decode [tags] from title ---------- */
+function buildEvent(ev){
+  let title=ev.summary, people=[], tagLabels=[];
+  const m = title.match(/^\s*[\(（]([^\)）]*)[\)）]\s*(.*)$/);
+  if(m){
+    title = m[2].trim();
+    const raw = m[1].split(/[,،;]/).map(s=>s.trim()).filter(Boolean);
+    for(const r of raw){
+      if(GROUPS[r]){ tagLabels.push(r); GROUPS[r].forEach(p=>{ if(!people.includes(p)) people.push(p); }); }
+      else {
+        // tolerant match against known people (ignore case/spaces)
+        const match = Object.keys(PEOPLE).find(p=>p===r);
+        if(match){ if(!people.includes(match)) people.push(match); }
+        else tagLabels.push(r); // unknown label kept as-is
+      }
+    }
+  }
+  if(people.length===0 && tagLabels.length===0){ tagLabels.push(GENERAL); }
+  return {...ev, title:title||ev.summary, people, tagLabels};
+}
+
+/* ---------- date helpers ---------- */
+function ymd(d){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function isToday(d){ return ymd(d)===ymd(new Date()); }
+function fmtTime(d){ return d.getHours().toString().padStart(2,"0")+":"+d.getMinutes().toString().padStart(2,"0"); }
+function dateOnly(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+
+/* רשימת כל הימים (Date בחצות) שאירוע נפרס עליהם.
+   - אירוע רגיל ביום אחד -> יום אחד
+   - אירוע רב-יומי -> כל הימים מההתחלה עד הסוף
+   באירוע "כל היום" ב-iCal, DTEND הוא בלעדי (יום אחרי הסיום), לכן מורידים יום. */
+function eventDays(ev){
+  const start=dateOnly(ev.start);
+  if(!ev.end) return [start];
+  let last=dateOnly(ev.end);
+  if(ev.allDay) last=new Date(last.getTime()-86400000); // DTEND בלעדי
+  if(last<=start) return [start];
+  const days=[]; let cur=new Date(start);
+  let guard=0;
+  while(cur<=last && guard++<400){ days.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
+  return days;
+}
+function isMultiDay(ev){ return eventDays(ev).length>1; }
+
+/* ---------- filtering ---------- */
+function matchesFilter(ev){
+  if(activeFilter==="ALL") return true;
+  if(GROUPS[activeFilter]) return ev.tagLabels.includes(activeFilter) ||
+        GROUPS[activeFilter].some(p=>ev.people.includes(p));
+  if(PEOPLE[activeFilter]) return ev.people.includes(activeFilter);
+  return ev.tagLabels.includes(activeFilter);
+}
+
+/* ---------- render: filters ---------- */
+function renderFilters(){
+  const f=document.getElementById("filters");
+  let html=`<button class="chip all ${activeFilter==='ALL'?'active':''}" onclick="setFilter('ALL')">הכל</button>`;
+  for(const [name,color] of Object.entries(PEOPLE)){
+    const a=activeFilter===name?'active':'';
+    const style=activeFilter===name?`style="background:${color}"`:'';
+    html+=`<button class="chip ${a}" ${style} onclick="setFilter('${name}')"><span class="dot" style="background:${color}"></span>${name}</button>`;
+  }
+  f.innerHTML=html;
+}
+
+/* ---------- render: tags on an event ---------- */
+function tagsHTML(ev){
+  let parts=[];
+  for(const g of ev.tagLabels){
+    if(g===GENERAL){ parts.push(`<span class="tag" style="background:#adb5bd">${g}</span>`); continue; }
+    const color=GROUP_COLOR[g]||"#868e96";
+    parts.push(`<span class="tag" style="background:${color}">${g}</span>`);
+  }
+  for(const p of ev.people){
+    parts.push(`<span class="tag" style="background:${PEOPLE[p]||'#868e96'}">${p}</span>`);
+  }
+  return parts.length?`<div class="tags">${parts.join("")}</div>`:"";
+}
+
+function eventHTML(ev, ctxDay){
+  const days = eventDays(ev);
+  const multi = days.length>1;
+  let time;
+  if(multi){
+    const startStr=`${days[0].getDate()}.${days[0].getMonth()+1}`;
+    const endStr=`${days[days.length-1].getDate()}.${days[days.length-1].getMonth()+1}`;
+    let pos="";
+    if(ctxDay){
+      const idx=days.findIndex(d=>ymd(d)===ymd(ctxDay));
+      if(idx>=0) pos=` · יום ${idx+1} מתוך ${days.length}`;
+    }
+    time=`<span class="allday">🗓️ <span class="ltr">${startStr}–${endStr}</span>${pos}</span>`;
+  } else if(ev.allDay){
+    time=`<span class="allday">כל היום</span>`;
+  } else {
+    time=`<span class="ltr">${fmtTime(ev.start)}${ev.end?" – "+fmtTime(ev.end):""}</span>`;
+  }
+  let meta="";
+  if(ev.location) meta+=`<span>📍 ${escapeHtml(ev.location)}</span>`;
+  const notes = ev.description ? `<div class="enotes">${escapeHtml(cleanDesc(ev.description))}</div>` : "";
+  return `<div class="event" style="border-inline-start-color:${primaryColor(ev)}">
+    <div class="etime">${time}</div>
+    <div class="etitle">${escapeHtml(ev.title)}</div>
+    ${meta?`<div class="emeta">${meta}</div>`:""}
+    ${notes}
+    ${tagsHTML(ev)}
+  </div>`;
+}
+function primaryColor(ev){
+  if(ev.people[0]) return PEOPLE[ev.people[0]];
+  if(ev.tagLabels[0] && GROUP_COLOR[ev.tagLabels[0]]) return GROUP_COLOR[ev.tagLabels[0]];
+  return "#adb5bd";
+}
+function escapeHtml(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+/* Google sometimes stores notes as HTML — strip tags & decode entities to clean text */
+function cleanDesc(s){
+  if(!s) return "";
+  if(!/[<&]/.test(s)) return s;
+  let t = s.replace(/<\s*br\s*\/?>/gi,"\n")
+           .replace(/<\/(p|div|li)>/gi,"\n")
+           .replace(/<[^>]+>/g,"");
+  const ta=document.createElement("textarea"); ta.innerHTML=t; t=ta.value;
+  return t.replace(/\n{3,}/g,"\n\n").trim();
+}
+
+/* ---------- render: LIST ---------- */
+function renderList(){
+  const evs=allEvents.filter(matchesFilter);
+  const c=document.getElementById("content");
+  if(!evs.length){ c.innerHTML=`<div class="status">אין עדיין אירועים 🏖️<br><span style="font-size:13px">הוסיפו אירוע ביומן גוגל, והתחילו את הכותרת בשם בסוגריים —<br>למשל <b>(יפעה) חוג</b> · <b>(סיירת) טיול</b> · <b>(כולם) ארוחת ערב</b></span></div>`; return; }
+  const groups={};
+  for(const ev of evs){
+    for(const day of eventDays(ev)){
+      const k=ymd(day);
+      (groups[k]=groups[k]||{date:day,items:[]}).items.push(ev);
+    }
+  }
+  // מיון הימים כרונולוגית
+  const keys=Object.keys(groups).sort((a,b)=>groups[a].date-groups[b].date);
+  let html="";
+  for(const k of keys){
+    const d=groups[k].date;
+    const today=isToday(d)?"today":"";
+    html+=`<div class="daygroup"><div class="dayhead ${today}">
+      <span class="dnum">${d.getDate()} ${HE_MONTHS[d.getMonth()]}</span>
+      <span class="dname">יום ${HE_DAYS[d.getDay()]}</span></div>`;
+    // אירועים בתוך יום: לפי שעת התחלה
+    const items=groups[k].items.slice().sort((a,b)=>a.start-b.start);
+    html+=items.map(ev=>eventHTML(ev,d)).join("");
+    html+=`</div>`;
+  }
+  c.innerHTML=html;
+}
+
+/* ---------- render: MONTH ---------- */
+function renderMonth(){
+  const c=document.getElementById("content");
+  const y=monthCursor.getFullYear(), m=monthCursor.getMonth();
+  const first=new Date(y,m,1), startDow=first.getDay();
+  const days=new Date(y,m+1,0).getDate();
+  const evs=allEvents.filter(matchesFilter);
+  const byDay={};
+  for(const ev of evs){
+    for(const day of eventDays(ev)){
+      if(day.getFullYear()===y && day.getMonth()===m){
+        const dd=day.getDate(); (byDay[dd]=byDay[dd]||[]).push(ev);
+      }
+    }
+  }
+
+  let html=`<div class="monthnav">
+    <button onclick="shiftMonth(1)">›</button>
+    <span class="mlabel">${HE_MONTHS[m]} ${y}</span>
+    <button onclick="shiftMonth(-1)">‹</button>
+  </div><div class="grid">`;
+  for(const wd of HE_DAYS_S) html+=`<div class="wd">${wd}</div>`;
+  for(let i=0;i<startDow;i++) html+=`<div class="cell empty"></div>`;
+  for(let d=1;d<=days;d++){
+    const dd=new Date(y,m,d); const today=isToday(dd)?"today":"";
+    const list=byDay[d]||[];
+    let inner=`<div class="cdate">${d}</div>`;
+    list.slice(0,3).forEach(ev=>{
+      inner+=`<div class="ev"><span class="pdot" style="background:${primaryColor(ev)}"></span>${escapeHtml(ev.title).slice(0,12)}</div>`;
+    });
+    if(list.length>3) inner+=`<div class="more">+${list.length-3}</div>`;
+    const click=list.length?`onclick="openDay(${y},${m},${d})"`:"";
+    html+=`<div class="cell ${today}" ${click}>${inner}</div>`;
+  }
+  html+=`</div>`;
+  c.innerHTML=html;
+}
+
+/* ---------- day modal ---------- */
+function openDay(y,m,d){
+  const ctx=new Date(y,m,d);
+  const evs=allEvents.filter(matchesFilter).filter(ev=>eventDays(ev).some(day=>ymd(day)===ymd(ctx)))
+                     .sort((a,b)=>a.start-b.start);
+  document.getElementById("modalTitle").textContent=`${d} ${HE_MONTHS[m]} · יום ${HE_DAYS[ctx.getDay()]}`;
+  document.getElementById("modalBody").innerHTML=evs.map(ev=>eventHTML(ev,ctx)).join("")||`<div class="status">אין אירועים</div>`;
+  document.getElementById("modal").classList.add("open");
+}
+function closeModal(){ document.getElementById("modal").classList.remove("open"); }
+
+/* ---------- controls ---------- */
+function setView(v){ view=v;
+  document.getElementById("btnMonth").classList.toggle("active",v==="month");
+  document.getElementById("btnList").classList.toggle("active",v==="list");
+  render();
+}
+function setFilter(f){ activeFilter=f; renderFilters(); render(); }
+function shiftMonth(delta){ monthCursor.setMonth(monthCursor.getMonth()+delta); renderMonth(); }
+function render(){ view==="month"?renderMonth():renderList(); }
+
+/* ---------- load ---------- */
+async function loadEvents(force){
+  const c=document.getElementById("content");
+  c.innerHTML=`<div class="status"><div class="spinner"></div>טוען אירועים מהיומן…</div>`;
+  const bust = force ? ("?_="+Date.now()) : ("?v="+Math.floor(Date.now()/300000)); // cache-bust every 5 min
+  let text=null, lastErr=null;
+
+  // 1) הקובץ המקומי שמסונכרן ע"י GitHub Action (הדרך האמינה)
+  try{
+    const res = await fetch(LOCAL_ICS + bust);
+    if(res.ok){ const t=await res.text(); if(t.includes("BEGIN:VCALENDAR")) text=t; }
+  }catch(e){ lastErr=e; }
+
+  // 2) גיבוי: משיכה ישירה מגוגל דרך פרוקסי
+  if(!text){
+    try{
+      const res = await fetch(PROXY + encodeURIComponent(ICAL_URL) + (force?("&_="+Date.now()):""));
+      if(res.ok){ const t=await res.text(); if(t.includes("BEGIN:VCALENDAR")) text=t; }
+    }catch(e){ lastErr=e; }
+  }
+
+  if(!text){
+    c.innerHTML=`<div class="status error">לא הצלחנו לטעון את היומן 😕<br>
+      <span style="font-size:13px">אם זו הפעם הראשונה — ייתכן שה-GitHub Action עדיין לא רץ. נסו שוב בעוד דקה.</span><br>
+      <button class="refresh" onclick="loadEvents(true)">נסה שוב</button></div>`;
+    return;
+  }
+
+  allEvents = parseICS(text);
+  if(allEvents.length){
+    const upcoming = allEvents.find(e=>e.start>=new Date(new Date().setHours(0,0,0,0)));
+    if(upcoming) monthCursor = new Date(upcoming.start);
+  }
+  renderFilters(); render();
+}
+
+renderFilters();
+loadEvents();
+</script>
+</body>
+</html>
+   background:var(--bg);
     color:var(--ink);
     font-size:16px;line-height:1.6;word-spacing:.04em;
     background-image:radial-gradient(circle at 12% 8%, rgba(255,183,3,.10), transparent 40%),
