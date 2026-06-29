@@ -285,6 +285,24 @@ function buildEvent(ev){
 function ymd(d){ return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
 function isToday(d){ return ymd(d)===ymd(new Date()); }
 function fmtTime(d){ return d.getHours().toString().padStart(2,"0")+":"+d.getMinutes().toString().padStart(2,"0"); }
+function dateOnly(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+
+/* רשימת כל הימים (Date בחצות) שאירוע נפרס עליהם.
+   - אירוע רגיל ביום אחד -> יום אחד
+   - אירוע רב-יומי -> כל הימים מההתחלה עד הסוף
+   באירוע "כל היום" ב-iCal, DTEND הוא בלעדי (יום אחרי הסיום), לכן מורידים יום. */
+function eventDays(ev){
+  const start=dateOnly(ev.start);
+  if(!ev.end) return [start];
+  let last=dateOnly(ev.end);
+  if(ev.allDay) last=new Date(last.getTime()-86400000); // DTEND בלעדי
+  if(last<=start) return [start];
+  const days=[]; let cur=new Date(start);
+  let guard=0;
+  while(cur<=last && guard++<400){ days.push(new Date(cur)); cur.setDate(cur.getDate()+1); }
+  return days;
+}
+function isMultiDay(ev){ return eventDays(ev).length>1; }
 
 /* ---------- filtering ---------- */
 function matchesFilter(ev){
@@ -304,11 +322,6 @@ function renderFilters(){
     const style=activeFilter===name?`style="background:${color}"`:'';
     html+=`<button class="chip ${a}" ${style} onclick="setFilter('${name}')"><span class="dot" style="background:${color}"></span>${name}</button>`;
   }
-  for(const g of ["סיירת","קייטנה"]){
-    const color=GROUP_COLOR[g]; const a=activeFilter===g?'active':'';
-    const style=activeFilter===g?`style="background:${color}"`:'';
-    html+=`<button class="chip ${a}" ${style} onclick="setFilter('${g}')"><span class="dot" style="background:${color}"></span>${g}</button>`;
-  }
   f.innerHTML=html;
 }
 
@@ -326,10 +339,24 @@ function tagsHTML(ev){
   return parts.length?`<div class="tags">${parts.join("")}</div>`:"";
 }
 
-function eventHTML(ev){
-  const time = ev.allDay
-     ? `<span class="allday">כל היום</span>`
-     : `<span class="ltr">${fmtTime(ev.start)}${ev.end&&!ev.allDay?" – "+fmtTime(ev.end):""}</span>`;
+function eventHTML(ev, ctxDay){
+  const days = eventDays(ev);
+  const multi = days.length>1;
+  let time;
+  if(multi){
+    const startStr=`${days[0].getDate()}.${days[0].getMonth()+1}`;
+    const endStr=`${days[days.length-1].getDate()}.${days[days.length-1].getMonth()+1}`;
+    let pos="";
+    if(ctxDay){
+      const idx=days.findIndex(d=>ymd(d)===ymd(ctxDay));
+      if(idx>=0) pos=` · יום ${idx+1} מתוך ${days.length}`;
+    }
+    time=`<span class="allday">🗓️ <span class="ltr">${startStr}–${endStr}</span>${pos}</span>`;
+  } else if(ev.allDay){
+    time=`<span class="allday">כל היום</span>`;
+  } else {
+    time=`<span class="ltr">${fmtTime(ev.start)}${ev.end?" – "+fmtTime(ev.end):""}</span>`;
+  }
   let meta="";
   if(ev.location) meta+=`<span>📍 ${escapeHtml(ev.location)}</span>`;
   const notes = ev.description ? `<div class="enotes">${escapeHtml(cleanDesc(ev.description))}</div>` : "";
@@ -364,15 +391,24 @@ function renderList(){
   const c=document.getElementById("content");
   if(!evs.length){ c.innerHTML=`<div class="status">אין עדיין אירועים 🏖️<br><span style="font-size:13px">הוסיפו אירוע ביומן גוגל, והתחילו את הכותרת בשם בסוגריים —<br>למשל <b>(יפעה) חוג</b> · <b>(סיירת) טיול</b> · <b>(כולם) ארוחת ערב</b></span></div>`; return; }
   const groups={};
-  for(const ev of evs){ const k=ymd(ev.start); (groups[k]=groups[k]||[]).push(ev); }
+  for(const ev of evs){
+    for(const day of eventDays(ev)){
+      const k=ymd(day);
+      (groups[k]=groups[k]||{date:day,items:[]}).items.push(ev);
+    }
+  }
+  // מיון הימים כרונולוגית
+  const keys=Object.keys(groups).sort((a,b)=>groups[a].date-groups[b].date);
   let html="";
-  for(const k of Object.keys(groups)){
-    const d=groups[k][0].start;
+  for(const k of keys){
+    const d=groups[k].date;
     const today=isToday(d)?"today":"";
     html+=`<div class="daygroup"><div class="dayhead ${today}">
       <span class="dnum">${d.getDate()} ${HE_MONTHS[d.getMonth()]}</span>
       <span class="dname">יום ${HE_DAYS[d.getDay()]}</span></div>`;
-    html+=groups[k].map(eventHTML).join("");
+    // אירועים בתוך יום: לפי שעת התחלה
+    const items=groups[k].items.slice().sort((a,b)=>a.start-b.start);
+    html+=items.map(ev=>eventHTML(ev,d)).join("");
     html+=`</div>`;
   }
   c.innerHTML=html;
@@ -386,7 +422,13 @@ function renderMonth(){
   const days=new Date(y,m+1,0).getDate();
   const evs=allEvents.filter(matchesFilter);
   const byDay={};
-  for(const ev of evs){ if(ev.start.getFullYear()===y&&ev.start.getMonth()===m){ const dd=ev.start.getDate(); (byDay[dd]=byDay[dd]||[]).push(ev);} }
+  for(const ev of evs){
+    for(const day of eventDays(ev)){
+      if(day.getFullYear()===y && day.getMonth()===m){
+        const dd=day.getDate(); (byDay[dd]=byDay[dd]||[]).push(ev);
+      }
+    }
+  }
 
   let html=`<div class="monthnav">
     <button onclick="shiftMonth(1)">›</button>
@@ -412,9 +454,11 @@ function renderMonth(){
 
 /* ---------- day modal ---------- */
 function openDay(y,m,d){
-  const evs=allEvents.filter(matchesFilter).filter(ev=>ev.start.getFullYear()===y&&ev.start.getMonth()===m&&ev.start.getDate()===d);
-  document.getElementById("modalTitle").textContent=`${d} ${HE_MONTHS[m]} · יום ${HE_DAYS[new Date(y,m,d).getDay()]}`;
-  document.getElementById("modalBody").innerHTML=evs.map(eventHTML).join("")||`<div class="status">אין אירועים</div>`;
+  const ctx=new Date(y,m,d);
+  const evs=allEvents.filter(matchesFilter).filter(ev=>eventDays(ev).some(day=>ymd(day)===ymd(ctx)))
+                     .sort((a,b)=>a.start-b.start);
+  document.getElementById("modalTitle").textContent=`${d} ${HE_MONTHS[m]} · יום ${HE_DAYS[ctx.getDay()]}`;
+  document.getElementById("modalBody").innerHTML=evs.map(ev=>eventHTML(ev,ctx)).join("")||`<div class="status">אין אירועים</div>`;
   document.getElementById("modal").classList.add("open");
 }
 function closeModal(){ document.getElementById("modal").classList.remove("open"); }
